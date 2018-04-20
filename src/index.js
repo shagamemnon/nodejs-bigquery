@@ -507,6 +507,8 @@ BigQuery.getType_ = function(value) {
     };
   } else if (is.bool(value)) {
     typeName = 'BOOL';
+  } else if ((value.toString().length) === 6)  {
+    typeName = 'STRING';
   } else if (is.number(value)) {
     typeName = value % 1 === 0 ? 'INT64' : 'FLOAT64';
   } else if (is.object(value)) {
