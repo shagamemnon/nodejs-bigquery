@@ -123,7 +123,7 @@ util.inherits(BigQuery, common.Service);
  * @param {array} rows
  * @returns {array} Fields using their matching names from the table's schema.
  */
-BigQuery.mergeSchemaWithRows_ = BigQuery.prototype.mergeSchemaWithRows_ = function(
+BigQuery.mergeSchemaWithRows_ = BigQuery.prototype.mergeSchemaWithRows_ = function (
   schema,
   rows
 ) {
@@ -132,12 +132,12 @@ BigQuery.mergeSchemaWithRows_ = BigQuery.prototype.mergeSchemaWithRows_ = functi
     .map(flattenRows);
 
   function mergeSchema(row) {
-    return row.f.map(function(field, index) {
+    return row.f.map(function (field, index) {
       var schemaField = schema.fields[index];
       var value = field.v;
 
       if (schemaField.mode === 'REPEATED') {
-        value = value.map(function(val) {
+        value = value.map(function (val) {
           return convert(schemaField, val.v);
         });
       } else {
@@ -201,7 +201,7 @@ BigQuery.mergeSchemaWithRows_ = BigQuery.prototype.mergeSchemaWithRows_ = functi
   }
 
   function flattenRows(rows) {
-    return rows.reduce(function(acc, row) {
+    return rows.reduce(function (acc, row) {
       var key = Object.keys(row)[0];
       acc[key] = row[key];
       return acc;
@@ -487,7 +487,7 @@ BigQuery.timestamp = BigQuery.prototype.timestamp = function BigQueryTimestamp(
  * @param {*} value The value.
  * @returns {string} The type detected from the value.
  */
-BigQuery.getType_ = function(value) {
+BigQuery.getType_ = function (value) {
   var typeName;
 
   if (value instanceof BigQuery.date) {
@@ -500,6 +500,8 @@ BigQuery.getType_ = function(value) {
     typeName = 'TIMESTAMP';
   } else if (value instanceof Buffer) {
     typeName = 'BYTES';
+  } else if (value.startsWith(100)) {
+    typeName = 'STRING';
   } else if (is.array(value)) {
     return {
       type: 'ARRAY',
@@ -507,14 +509,12 @@ BigQuery.getType_ = function(value) {
     };
   } else if (is.bool(value)) {
     typeName = 'BOOL';
-  } else if ((value.toString().length) === 6)  {
-    typeName = 'STRING';
   } else if (is.number(value)) {
     typeName = value % 1 === 0 ? 'INT64' : 'FLOAT64';
   } else if (is.object(value)) {
     return {
       type: 'STRUCT',
-      structTypes: Object.keys(value).map(function(prop) {
+      structTypes: Object.keys(value).map(function (prop) {
         return {
           name: prop,
           type: BigQuery.getType_(value[prop]),
@@ -549,7 +549,7 @@ BigQuery.getType_ = function(value) {
  * @param {*} value The value.
  * @returns {object} A properly-formed `queryParameter` object.
  */
-BigQuery.valueToQueryParameter_ = function(value) {
+BigQuery.valueToQueryParameter_ = function (value) {
   if (is.date(value)) {
     value = BigQuery.timestamp(value);
   }
@@ -566,14 +566,14 @@ BigQuery.valueToQueryParameter_ = function(value) {
   }
 
   if (typeName === 'ARRAY') {
-    queryParameter.parameterValue.arrayValues = value.map(function(value) {
+    queryParameter.parameterValue.arrayValues = value.map(function (value) {
       return {
         value: value,
       };
     });
   } else if (typeName === 'STRUCT') {
     queryParameter.parameterValue.structValues = Object.keys(value).reduce(
-      function(structValues, prop) {
+      function (structValues, prop) {
         var nestedQueryParameter = BigQuery.valueToQueryParameter_(value[prop]);
         structValues[prop] = nestedQueryParameter.parameterValue;
         return structValues;
@@ -615,7 +615,7 @@ BigQuery.valueToQueryParameter_ = function(value) {
  *   const apiResponse = data[1];
  * });
  */
-BigQuery.prototype.createDataset = function(id, options, callback) {
+BigQuery.prototype.createDataset = function (id, options, callback) {
   var that = this;
 
   if (is.fn(options)) {
@@ -640,7 +640,7 @@ BigQuery.prototype.createDataset = function(id, options, callback) {
         }
       ),
     },
-    function(err, resp) {
+    function (err, resp) {
       if (err) {
         callback(err, null, resp);
         return;
@@ -730,7 +730,7 @@ BigQuery.prototype.createDataset = function(id, options, callback) {
  *   return job.getQueryResults();
  * });
  */
-BigQuery.prototype.createQueryJob = function(options, callback) {
+BigQuery.prototype.createQueryJob = function (options, callback) {
   if (is.string(options)) {
     options = {
       query: options,
@@ -901,7 +901,7 @@ BigQuery.prototype.createQueryStream = common.paginator.streamify('query');
  *   return job.getQueryResults();
  * });
  */
-BigQuery.prototype.createJob = function(options, callback) {
+BigQuery.prototype.createJob = function (options, callback) {
   var self = this;
 
   var reqOpts = extend({}, options);
@@ -933,7 +933,7 @@ BigQuery.prototype.createJob = function(options, callback) {
       uri: '/jobs',
       json: reqOpts,
     },
-    function(err, resp) {
+    function (err, resp) {
       if (err) {
         callback(err, null, resp);
         return;
@@ -970,9 +970,9 @@ BigQuery.prototype.createJob = function(options, callback) {
  * const bigquery = new BigQuery();
  * const dataset = bigquery.dataset('higher_education');
  */
-BigQuery.prototype.dataset = function(id, options) {
+BigQuery.prototype.dataset = function (id, options) {
   if (this.location) {
-    options = extend({location: this.location}, options);
+    options = extend({ location: this.location }, options);
   }
 
   return new Dataset(this, id, options);
@@ -1026,7 +1026,7 @@ BigQuery.prototype.dataset = function(id, options) {
  * //-
  * bigquery.getDatasets().then(function(datasets) {});
  */
-BigQuery.prototype.getDatasets = function(options, callback) {
+BigQuery.prototype.getDatasets = function (options, callback) {
   var that = this;
 
   if (is.fn(options)) {
@@ -1041,7 +1041,7 @@ BigQuery.prototype.getDatasets = function(options, callback) {
       uri: '/datasets',
       qs: options,
     },
-    function(err, resp) {
+    function (err, resp) {
       if (err) {
         callback(err, null, null, resp);
         return;
@@ -1055,7 +1055,7 @@ BigQuery.prototype.getDatasets = function(options, callback) {
         });
       }
 
-      var datasets = (resp.datasets || []).map(function(dataset) {
+      var datasets = (resp.datasets || []).map(function (dataset) {
         var ds = that.dataset(dataset.datasetReference.datasetId, {
           location: dataset.location,
         });
@@ -1161,7 +1161,7 @@ BigQuery.prototype.getDatasetsStream = common.paginator.streamify(
  *   const jobs = data[0];
  * });
  */
-BigQuery.prototype.getJobs = function(options, callback) {
+BigQuery.prototype.getJobs = function (options, callback) {
   var that = this;
 
   if (is.fn(options)) {
@@ -1177,7 +1177,7 @@ BigQuery.prototype.getJobs = function(options, callback) {
       qs: options,
       useQuerystring: true,
     },
-    function(err, resp) {
+    function (err, resp) {
       if (err) {
         callback(err, null, null, resp);
         return;
@@ -1191,7 +1191,7 @@ BigQuery.prototype.getJobs = function(options, callback) {
         });
       }
 
-      var jobs = (resp.jobs || []).map(function(jobObject) {
+      var jobs = (resp.jobs || []).map(function (jobObject) {
         var job = that.job(jobObject.jobReference.jobId, {
           location: jobObject.jobReference.location,
         });
@@ -1252,9 +1252,9 @@ BigQuery.prototype.getJobsStream = common.paginator.streamify('getJobs');
  *
  * const myExistingJob = bigquery.job('job-id');
  */
-BigQuery.prototype.job = function(id, options) {
+BigQuery.prototype.job = function (id, options) {
   if (this.location) {
-    options = extend({location: this.location}, options);
+    options = extend({ location: this.location }, options);
   }
 
   return new Job(this, id, options);
@@ -1348,13 +1348,13 @@ BigQuery.prototype.job = function(id, options) {
  *   var rows = data[0];
  * });
  */
-BigQuery.prototype.query = function(query, options, callback) {
+BigQuery.prototype.query = function (query, options, callback) {
   if (is.fn(options)) {
     callback = options;
     options = {};
   }
 
-  this.createQueryJob(query, function(err, job, resp) {
+  this.createQueryJob(query, function (err, job, resp) {
     if (err) {
       callback(err, null, resp);
       return;
